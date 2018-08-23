@@ -3,24 +3,6 @@ import MongoKitten
 import KituraSession
 
 
-enum KituraMongoDbSessionStoreError: Error {
-    
-    case documentDoesNotExist
-    case dataCouldNotBeRetrieved
-    
-    var localizedDescription: String {
-        get {
-            switch self {
-            case .dataCouldNotBeRetrieved:
-                return "Data could not be retrieved."
-            case.documentDoesNotExist:
-                return "Document does not exist."
-            }
-        }
-    }
-}
-
-
 public class KituraMongoDbSessionStore: Store {
     
     /// Collection to which to store the sessions
@@ -50,7 +32,7 @@ public class KituraMongoDbSessionStore: Store {
             
             callback(data, nil)
         } catch {
-            callback(nil, self.getNsError(error: error))
+            callback(nil, self.getNSError(error))
         }
     }
     
@@ -71,7 +53,7 @@ public class KituraMongoDbSessionStore: Store {
             try self.collection.insert(document)
             callback(nil)
         } catch {
-            callback(self.getNsError(error: error))
+            callback(self.getNSError(error))
         }
     }
     
@@ -91,7 +73,7 @@ public class KituraMongoDbSessionStore: Store {
             
             callback(nil)
         } catch {
-            callback(self.getNsError(error: error))
+            callback(self.getNSError(error))
         }
     }
     
@@ -107,7 +89,7 @@ public class KituraMongoDbSessionStore: Store {
             _ = try self.collection.findAndRemove(query, sortedBy: nil, projection: nil)
             callback(nil)
         } catch {
-            callback(self.getNsError(error: error))
+            callback(self.getNSError(error))
         }
     }
     
@@ -115,12 +97,34 @@ public class KituraMongoDbSessionStore: Store {
     ///
     /// - Parameter error: Instance of an Error
     /// - Returns: NSError
-    private func getNsError (error: Error) -> NSError {
+    private func getNSError<ErrorObject> (_ error: ErrorObject) -> NSError {
+        
+        if let err = (error as? NSError) {
+            return err
+        }
+        
         return NSError(
             domain: "KituraMongoDbSessionStore",
             code: 500,
-            userInfo: ["Description": error.localizedDescription]
+            userInfo: nil
         )
     }
 }
 
+enum KituraMongoDbSessionStoreError: Error {
+    case documentDoesNotExist
+    case dataCouldNotBeRetrieved
+}
+
+extension KituraMongoDbSessionStoreError: LocalizedError {
+    public var errorDescription: String? {
+        get {
+            switch self {
+            case .dataCouldNotBeRetrieved:
+                return NSLocalizedString("Data could not be retrieved.", comment: "KituraMongoDbSessionStoreError")
+            case .documentDoesNotExist:
+                return NSLocalizedString("Document does not exist.", comment: "KituraMongoDbSessionStoreError")
+            }
+        }
+    }
+}
