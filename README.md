@@ -15,6 +15,7 @@ import Foundation
 import Kitura
 import KituraSession
 import Kitura_MongoDbSessionStore
+import MongoKitten
 
 // Connect to MongoDB
 let server = try Server("mongo_url")
